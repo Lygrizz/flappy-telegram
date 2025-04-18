@@ -2,8 +2,10 @@ import json
 import os
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
+from fastapi import FastAPI, Request
+from telegram.ext import Updater, CommandHandler, Dispatcher
 
-TOKEN = os.environ.get("8107277857:AAFQcwRAP01SjE9t2UGewMbsfjiNkwoMMKE")
+TOKEN = os.environ.get("BOT_TOKEN")
 
 app = Application.builder().token(TOKEN).build()
 
@@ -16,18 +18,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 app.add_handler(CommandHandler("start", start))
 
-# Vercel вызывает эту функцию
-async def handler(request):
+# Для Vercel нужно настроить FastAPI или другие серверные фреймворки
+# Пример использования FastAPI
+fastapi_app = FastAPI()
+
+@fastapi_app.post("/webhook")
+async def handle_webhook(request: Request):
     try:
         body = await request.body()
         update = json.loads(body)
         await app.process_update(Update.de_json(update, app.bot))
-        return {
-            "statusCode": 200,
-            "body": "ok"
-        }
+        return {"statusCode": 200, "body": "ok"}
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": f"error: {str(e)}"
-        }
+        return {"statusCode": 500, "body": f"error: {str(e)}"}
+
