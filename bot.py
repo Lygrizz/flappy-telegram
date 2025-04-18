@@ -1,35 +1,20 @@
-from flask import Flask, request, send_from_directory
-from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-import os
+TOKEN = "8107277857:AAFQcwRAP01SjE9t2UGewMbsfjiNkwoMMKE"
 
-app = Flask(__name__, static_folder="static")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [KeyboardButton(text="Запустить игру 🕹", web_app=WebAppInfo(url="https://flappy-telegram.vercel.app"))]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text("Нажми на кнопку, чтобы начать играть:", reply_markup=reply_markup)
 
-TOKEN = "8107277857:AAFQcwRAP01SjE9t2UGewMbsfjiNkwoMMKE"  # 🔴 ЗАМЕНИ на свой токен
-bot = Bot(TOKEN)
-dispatcher = Dispatcher(bot=bot, update_queue=None)
-
-# Команда /start
-def start(update, context):
-    update.message.reply_text("Привет! Нажми на кнопку ниже, чтобы поиграть!")
-    update.message.reply_game("flappy")  # <-- это название игры в @BotFather /setgame
-
-dispatcher.add_handler(CommandHandler("start", start))
-
-# Telegram Webhook
-@app.route(f"/{TOKEN}", methods=["POST"])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    dispatcher.process_update(update)
-    return "OK"
-
-# Главная страница (твоя игра)
-@app.route("/")
-def serve_game():
-    return send_from_directory("static", "index.html")
-
-# Остальные файлы (css, js, картинки)
-@app.route("/<path:path>")
-def static_files(path):
-    return send_from_directory("static", path)
+if __name__ == '__main__':
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=8000,
+        webhook_url=f"https://flappy-telegram.vercel.app/{TOKEN}"
+    )
