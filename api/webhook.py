@@ -5,7 +5,10 @@ from telegram.ext import Application
 import os
 
 TOKEN = os.environ.get("BOT_TOKEN")
+print(f"TOKEN: {TOKEN}")
 app = Application.builder().token(TOKEN).build()
+
+
 
 fastapi_app = FastAPI()
 
